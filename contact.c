@@ -7,8 +7,12 @@ void printLine(void) {
     printf("===================================\n");
 }
 
-void add_contact(Contact contacts[], int* count) {
+void add_contact(Contact **contacts, int *count, int *capacity) {
     printLine();
+
+    // Resize if needed
+
+    resize(contacts, count, capacity);
 
     Contact newContact; 
 
@@ -27,7 +31,7 @@ void add_contact(Contact contacts[], int* count) {
 
     // Add to contacts and increment size
 
-    contacts[*count] = newContact;
+    (*contacts)[*count] = newContact;
     (*count)++;
 
     printLine();
@@ -67,7 +71,7 @@ void save_contacts(const Contact contacts[], int count) {
     }
 }
 
-void load_contacts(Contact contacts[], int* count) {
+void load_contacts(Contact **contacts, int *count, int *capacity) {
     printLine();
 
     // Open the file in read mode and return an error if you get fp as 0 (ie NULL)
@@ -78,7 +82,16 @@ void load_contacts(Contact contacts[], int* count) {
         return;
     }
 
+    // Reset everything so you have a fresh contacts list to load into
+
+    free(*contacts);
+    *contacts = malloc(INITIAL_CAPACITY * sizeof **contacts);
+    if (!*contacts) {
+        perror("malloc");
+        return;
+    }
     (*count) = 0;
+    (*capacity) = INITIAL_CAPACITY;
 
     // Checks if count is less than max contacts
     // Then uses scanf to read from the file into the addresses of the contacts
@@ -86,9 +99,18 @@ void load_contacts(Contact contacts[], int* count) {
     // and stop at , then take the next 19 characters and stop at newline
     // Then jump to the next line"
 
-    while (*count < MAX_CONTACTS && fscanf(fp, " %49[^,],%19[^\n]\n",
-        contacts[*count].name,
-        contacts[*count].phone) == 2) {
+    Contact nextContact;
+
+    while (fscanf(fp, " %49[^,],%19[^\n]\n",
+        nextContact.name,
+        nextContact.phone) == 2) {
+
+        // Resize if needed
+
+        resize(contacts, count, capacity);
+
+        (*contacts)[*count] = nextContact;
+
         (*count)++;
     }
 
@@ -99,4 +121,17 @@ void load_contacts(Contact contacts[], int* count) {
         return;
     }
     printLine();
+}
+
+void resize(Contact **contacts, int* count, int* capacity) {
+        if (*count >= *capacity) {
+        int newCapacity = (*capacity) * 2;
+        Contact *tmp = realloc(*contacts,newCapacity * sizeof(*tmp));
+        if (!tmp) {
+            perror("Memory reallocation failed\n");
+            exit(1);
+        }
+        *contacts = tmp; 
+        *capacity = newCapacity;
+    }
 }

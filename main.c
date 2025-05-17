@@ -6,8 +6,10 @@
 int main(void) {
 
     int count = 0;
-    Contact contacts[MAX_CONTACTS];
-    Contact* contacts = malloc(sizeof(Contact) * MAX_CONTACTS);
+    int capacity = INITIAL_CAPACITY;
+    // Contact contacts[capacity]; don't need to declare static array, only pointer
+    Contact* contacts = NULL;
+    contacts = malloc(sizeof(*contacts) * capacity);
     if (!contacts) {
         fprintf(stderr, "Memory allocation failed\n");
         return 1;
@@ -21,7 +23,7 @@ int main(void) {
         getchar();
         switch (userOp) {
             case 1:
-                add_contact(contacts, &count);
+                add_contact(&contacts, &count, &capacity);
                 break;
             case 2:
                 list_contacts(contacts, count);
@@ -30,7 +32,7 @@ int main(void) {
                 save_contacts(contacts, count);
                 break;
             case 4:
-                load_contacts(contacts, &count);
+                load_contacts(&contacts, &count, &capacity);
                 break;
             case 0:
                 printf("Thank you for using the contacts book.\n");
